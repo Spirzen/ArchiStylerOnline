@@ -1,0 +1,225 @@
+{
+  "patterns": [
+    {
+      "id": "mvp",
+      "name": "MVP",
+      "category": "Architectural",
+      "description": "Model-View-Presenter: View delegates to Presenter, Presenter uses Model.",
+      "classes": [
+        { "name": "IView", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Show", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "View", "role": "View", "offsetX": 0, "offsetY": 140, "implements": ["IView"], "members": [
+          { "kind": "Method", "name": "Show", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "IModel", "role": "Interface", "isInterface": true, "offsetX": 280, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Load", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Model", "role": "Model", "offsetX": 280, "offsetY": 140, "implements": ["IModel"], "members": [
+          { "kind": "Method", "name": "Load", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Presenter", "role": "Presenter", "offsetX": 140, "offsetY": 300, "members": [
+          { "kind": "Field", "name": "_view", "type": "IView", "access": "Private" },
+          { "kind": "Field", "name": "_model", "type": "IModel", "access": "Private" },
+          { "kind": "Constructor", "name": "Presenter", "access": "Public", "parameters": [
+            { "name": "view", "type": "IView" }, { "name": "model", "type": "IModel" }
+          ]},
+          { "kind": "Method", "name": "Initialize", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "View", "to": "IView", "kind": "Implements" },
+        { "from": "Model", "to": "IModel", "kind": "Implements" },
+        { "from": "Presenter", "to": "IView", "kind": "Uses" },
+        { "from": "Presenter", "to": "IModel", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "mvvm",
+      "name": "MVVM",
+      "category": "Architectural",
+      "description": "Model-View-ViewModel with data binding oriented API.",
+      "classes": [
+        { "name": "View", "role": "View", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Property", "name": "DataContext", "type": "object", "access": "Public" }
+        ]},
+        { "name": "ViewModelBase", "role": "ViewModel", "isAbstract": true, "offsetX": 260, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "OnPropertyChanged", "returnType": "void", "access": "Protected", "parameters": [{ "name": "name", "type": "string" }], "generateStub": true }
+        ]},
+        { "name": "MainViewModel", "role": "ViewModel", "offsetX": 260, "offsetY": 140, "baseType": "ViewModelBase", "members": [
+          { "kind": "Property", "name": "Title", "type": "string", "access": "Public" },
+          { "kind": "Method", "name": "LoadCommand", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Model", "role": "Model", "offsetX": 520, "offsetY": 70, "members": [
+          { "kind": "Method", "name": "Fetch", "returnType": "object", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "MainViewModel", "to": "ViewModelBase", "kind": "Inherits" },
+        { "from": "MainViewModel", "to": "Model", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "singleton",
+      "name": "Singleton",
+      "category": "Creational",
+      "description": "Single instance with global access.",
+      "classes": [
+        { "name": "Singleton", "role": "None", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Field", "name": "_instance", "type": "Singleton", "access": "Private", "isStatic": true },
+          { "kind": "Constructor", "name": "Singleton", "access": "Private" },
+          { "kind": "Method", "name": "Instance", "returnType": "Singleton", "access": "Public", "isStatic": true, "generateStub": true }
+        ]}
+      ],
+      "relations": []
+    },
+    {
+      "id": "factory",
+      "name": "Factory Method",
+      "category": "Creational",
+      "description": "Creator declares factory method; subclasses return concrete products.",
+      "classes": [
+        { "name": "IProduct", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 140, "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Creator", "role": "Factory", "isAbstract": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "CreateProduct", "returnType": "IProduct", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcreteCreator", "role": "Factory", "offsetX": 260, "offsetY": 0, "baseType": "Creator", "members": [
+          { "kind": "Method", "name": "CreateProduct", "returnType": "IProduct", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "ConcreteProduct", "role": "Model", "offsetX": 260, "offsetY": 140, "implements": ["IProduct"], "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteCreator", "to": "Creator", "kind": "Inherits" },
+        { "from": "ConcreteProduct", "to": "IProduct", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "strategy",
+      "name": "Strategy",
+      "category": "Behavioral",
+      "description": "Encapsulate interchangeable algorithms behind a common interface.",
+      "classes": [
+        { "name": "IStrategy", "role": "Strategy", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Execute", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcreteStrategyA", "role": "Strategy", "offsetX": 0, "offsetY": 120, "implements": ["IStrategy"], "members": [
+          { "kind": "Method", "name": "Execute", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Context", "role": "Service", "offsetX": 280, "offsetY": 40, "members": [
+          { "kind": "Field", "name": "_strategy", "type": "IStrategy", "access": "Private" },
+          { "kind": "Method", "name": "SetStrategy", "returnType": "void", "access": "Public", "parameters": [{ "name": "strategy", "type": "IStrategy" }] },
+          { "kind": "Method", "name": "DoWork", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteStrategyA", "to": "IStrategy", "kind": "Implements" },
+        { "from": "Context", "to": "IStrategy", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "command",
+      "name": "Command",
+      "category": "Behavioral",
+      "description": "Encapsulate requests as objects with execute/undo.",
+      "classes": [
+        { "name": "ICommand", "role": "Command", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Execute", "returnType": "void", "access": "Public", "isAbstract": true },
+          { "kind": "Method", "name": "Undo", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcreteCommand", "role": "Command", "offsetX": 0, "offsetY": 130, "implements": ["ICommand"], "members": [
+          { "kind": "Method", "name": "Execute", "returnType": "void", "access": "Public", "generateStub": true },
+          { "kind": "Method", "name": "Undo", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Invoker", "role": "Handler", "offsetX": 280, "offsetY": 50, "members": [
+          { "kind": "Method", "name": "Run", "returnType": "void", "access": "Public", "parameters": [{ "name": "command", "type": "ICommand" }], "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteCommand", "to": "ICommand", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "repository-orm",
+      "name": "Repository (ORM)",
+      "category": "ORM",
+      "description": "Generic repository over entity and DbContext-style unit of work.",
+      "classes": [
+        { "name": "Entity", "role": "Entity", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Property", "name": "Id", "type": "int", "access": "Public" }
+        ]},
+        { "name": "IRepository", "role": "Repository", "isInterface": true, "offsetX": 260, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "GetById", "returnType": "Entity", "access": "Public", "isAbstract": true, "parameters": [{ "name": "id", "type": "int" }] },
+          { "kind": "Method", "name": "Add", "returnType": "void", "access": "Public", "isAbstract": true, "parameters": [{ "name": "entity", "type": "Entity" }] }
+        ]},
+        { "name": "Repository", "role": "Repository", "offsetX": 260, "offsetY": 140, "implements": ["IRepository"], "members": [
+          { "kind": "Method", "name": "GetById", "returnType": "Entity", "access": "Public", "generateStub": true, "parameters": [{ "name": "id", "type": "int" }] },
+          { "kind": "Method", "name": "Add", "returnType": "void", "access": "Public", "generateStub": true, "parameters": [{ "name": "entity", "type": "Entity" }] }
+        ]},
+        { "name": "AppDbContext", "role": "OrmContext", "offsetX": 520, "offsetY": 70, "members": [
+          { "kind": "Method", "name": "SaveChanges", "returnType": "int", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Repository", "to": "IRepository", "kind": "Implements" },
+        { "from": "Repository", "to": "AppDbContext", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "adapter",
+      "name": "Adapter",
+      "category": "Structural",
+      "description": "Convert interface of a class into another interface clients expect.",
+      "classes": [
+        { "name": "ITarget", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Request", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Adaptee", "role": "Service", "offsetX": 280, "offsetY": 120, "members": [
+          { "kind": "Method", "name": "SpecificRequest", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Adapter", "role": "Adapter", "offsetX": 0, "offsetY": 140, "implements": ["ITarget"], "members": [
+          { "kind": "Field", "name": "_adaptee", "type": "Adaptee", "access": "Private" },
+          { "kind": "Method", "name": "Request", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Adapter", "to": "ITarget", "kind": "Implements" },
+        { "from": "Adapter", "to": "Adaptee", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "layered",
+      "name": "Слои (Models / Data / Handlers)",
+      "category": "Architectural",
+      "description": "Классическая раскладка по папкам: модели, доступ к данным, обработчики.",
+      "folders": [
+        { "name": "Models", "segment": "Models", "offsetX": 0, "offsetY": 0, "width": 300, "height": 220 },
+        { "name": "Data", "segment": "Data", "offsetX": 320, "offsetY": 0, "width": 300, "height": 220 },
+        { "name": "Handlers", "segment": "Handlers", "offsetX": 160, "offsetY": 250, "width": 320, "height": 220 }
+      ],
+      "classes": [
+        { "name": "Entity", "role": "Model", "folder": "Models", "offsetX": 24, "offsetY": 36, "members": [
+          { "kind": "Property", "name": "Id", "type": "string", "access": "Public" }
+        ]},
+        { "name": "IRepository", "role": "Interface", "folder": "Data", "isInterface": true, "offsetX": 20, "offsetY": 30, "members": [
+          { "kind": "Method", "name": "GetById", "returnType": "Entity", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Repository", "role": "Repository", "folder": "Data", "offsetX": 20, "offsetY": 100, "implements": ["IRepository"], "members": [
+          { "kind": "Method", "name": "GetById", "returnType": "Entity", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "CreateOrderHandler", "role": "Service", "folder": "Handlers", "offsetX": 24, "offsetY": 40, "members": [
+          { "kind": "Field", "name": "_repo", "type": "IRepository", "access": "Private" },
+          { "kind": "Method", "name": "Handle", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Repository", "to": "IRepository", "kind": "Implements" },
+        { "from": "CreateOrderHandler", "to": "IRepository", "kind": "Uses" },
+        { "from": "IRepository", "to": "Entity", "kind": "Uses" }
+      ]
+    }
+  ]
+}

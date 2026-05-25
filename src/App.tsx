@@ -1,0 +1,96 @@
+import { useEffect } from 'react';
+import { DiagramCanvas } from './components/Diagram/DiagramCanvas';
+import { InspectorPanel } from './components/Inspector/InspectorPanel';
+import { HelpModal } from './components/modals/HelpModal';
+import { ImportModal } from './components/modals/ImportModal';
+import { LeftPanel } from './components/Toolbar/LeftPanel';
+import { loadPatterns } from './services/templateService';
+import { useDiagramStore } from './store/diagramStore';
+
+const base = import.meta.env.BASE_URL;
+
+export default function App() {
+  const theme = useDiagramStore((s) => s.theme);
+  const setTheme = useDiagramStore((s) => s.setTheme);
+  const init = useDiagramStore((s) => s.init);
+  const statusMessage = useDiagramStore((s) => s.statusMessage);
+  const project = useDiagramStore((s) => s.project);
+  const setProjectName = useDiagramStore((s) => s.setProjectName);
+  const setLanguage = useDiagramStore((s) => s.setLanguage);
+  const newDiagram = useDiagramStore((s) => s.newDiagram);
+  const exportJson = useDiagramStore((s) => s.exportJson);
+  const showHelp = useDiagramStore((s) => s.showHelp);
+  const showImport = useDiagramStore((s) => s.showImport);
+  const setShowHelp = useDiagramStore((s) => s.setShowHelp);
+  const setShowImport = useDiagramStore((s) => s.setShowImport);
+  const deleteSelected = useDiagramStore((s) => s.deleteSelected);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    loadPatterns(base).then(init);
+  }, [base, init, theme]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Delete') deleteSelected();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [deleteSelected]);
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <h1>ArchiStyler Online</h1>
+        <span className="tagline">ООП · паттерны · архитектура</span>
+        <input
+          className="input-control"
+          style={{ maxWidth: 160 }}
+          value={project.name}
+          onChange={(e) => setProjectName(e.target.value)}
+          aria-label="Имя схемы"
+        />
+        <select
+          className="input-control"
+          value={project.language}
+          onChange={(e) => setLanguage(e.target.value as 'csharp' | 'java')}
+          aria-label="Язык кода"
+        >
+          <option value="csharp">C#</option>
+          <option value="java">Java</option>
+        </select>
+        <button type="button" className="btn btn-compact" onClick={() => setShowImport(true)}>
+          Импорт
+        </button>
+        <button type="button" className="btn btn-compact" onClick={exportJson}>
+          Экспорт
+        </button>
+        <button type="button" className="btn btn-compact" onClick={newDiagram}>
+          Новая схема
+        </button>
+        <button type="button" className="btn btn-compact" onClick={() => setShowHelp(true)}>
+          Справка
+        </button>
+        <button
+          type="button"
+          className="btn btn-compact"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          aria-label="Переключить тему"
+        >
+          {theme === 'dark' ? '☀' : '🌙'}
+        </button>
+      </header>
+
+      <div className="app-main">
+        <LeftPanel />
+        <DiagramCanvas />
+        <InspectorPanel />
+      </div>
+
+      <footer className="status-bar">{statusMessage}</footer>
+
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {showImport && <ImportModal onClose={() => setShowImport(false)} />}
+    </div>
+  );
+}

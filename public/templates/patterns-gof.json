@@ -1,0 +1,317 @@
+{
+  "patterns": [
+    {
+      "id": "abstract-factory",
+      "name": "Abstract Factory",
+      "category": "Creational",
+      "description": "Семейства связанных объектов без привязки к конкретным классам.",
+      "classes": [
+        { "name": "IAbstractProductA", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "UsefulFunctionA", "returnType": "string", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "IAbstractProductB", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 100, "members": [
+          { "kind": "Method", "name": "UsefulFunctionB", "returnType": "string", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "IAbstractFactory", "role": "Factory", "isInterface": true, "offsetX": 260, "offsetY": 40, "members": [
+          { "kind": "Method", "name": "CreateProductA", "returnType": "IAbstractProductA", "access": "Public", "isAbstract": true },
+          { "kind": "Method", "name": "CreateProductB", "returnType": "IAbstractProductB", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcreteFactory1", "role": "Factory", "offsetX": 520, "offsetY": 0, "implements": ["IAbstractFactory"], "members": [
+          { "kind": "Method", "name": "CreateProductA", "returnType": "IAbstractProductA", "access": "Public", "generateStub": true },
+          { "kind": "Method", "name": "CreateProductB", "returnType": "IAbstractProductB", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteFactory1", "to": "IAbstractFactory", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "prototype",
+      "name": "Prototype",
+      "category": "Creational",
+      "description": "Копирование объектов через общий интерфейс Clone.",
+      "classes": [
+        { "name": "IPrototype", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Clone", "returnType": "IPrototype", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcretePrototype", "role": "Model", "offsetX": 0, "offsetY": 120, "implements": ["IPrototype"], "members": [
+          { "kind": "Field", "name": "State", "type": "string", "access": "Public" },
+          { "kind": "Method", "name": "Clone", "returnType": "IPrototype", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcretePrototype", "to": "IPrototype", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "bridge",
+      "name": "Bridge",
+      "category": "Structural",
+      "description": "Разделение абстракции и реализации.",
+      "classes": [
+        { "name": "IImplementation", "role": "Interface", "isInterface": true, "offsetX": 280, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "OperationImpl", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Abstraction", "role": "Service", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Field", "name": "_impl", "type": "IImplementation", "access": "Protected" },
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "ConcreteImplementation", "role": "Service", "offsetX": 280, "offsetY": 120, "implements": ["IImplementation"], "members": [
+          { "kind": "Method", "name": "OperationImpl", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Abstraction", "to": "IImplementation", "kind": "Uses" },
+        { "from": "ConcreteImplementation", "to": "IImplementation", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "composite",
+      "name": "Composite",
+      "category": "Structural",
+      "description": "Древовидная структура объектов «часть-целое».",
+      "classes": [
+        { "name": "IComponent", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Leaf", "role": "Model", "offsetX": 0, "offsetY": 120, "implements": ["IComponent"], "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Composite", "role": "Manager", "offsetX": 260, "offsetY": 60, "implements": ["IComponent"], "members": [
+          { "kind": "Method", "name": "Add", "returnType": "void", "access": "Public", "parameters": [{ "name": "child", "type": "IComponent" }] },
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Leaf", "to": "IComponent", "kind": "Implements" },
+        { "from": "Composite", "to": "IComponent", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "decorator",
+      "name": "Decorator",
+      "category": "Structural",
+      "description": "Динамическое добавление поведения обёртками.",
+      "classes": [
+        { "name": "IComponent", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcreteComponent", "role": "Service", "offsetX": 0, "offsetY": 120, "implements": ["IComponent"], "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Decorator", "role": "Handler", "offsetX": 260, "offsetY": 40, "implements": ["IComponent"], "members": [
+          { "kind": "Field", "name": "_component", "type": "IComponent", "access": "Protected" },
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteComponent", "to": "IComponent", "kind": "Implements" },
+        { "from": "Decorator", "to": "IComponent", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "facade",
+      "name": "Facade",
+      "category": "Structural",
+      "description": "Упрощённый интерфейс к сложной подсистеме.",
+      "classes": [
+        { "name": "SubsystemA", "role": "Service", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "OperationA", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "SubsystemB", "role": "Service", "offsetX": 0, "offsetY": 100, "members": [
+          { "kind": "Method", "name": "OperationB", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Facade", "role": "Service", "offsetX": 280, "offsetY": 40, "members": [
+          { "kind": "Method", "name": "Execute", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Facade", "to": "SubsystemA", "kind": "Uses" },
+        { "from": "Facade", "to": "SubsystemB", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "flyweight",
+      "name": "Flyweight",
+      "category": "Structural",
+      "description": "Разделение внутреннего и внешнего состояния для экономии памяти.",
+      "classes": [
+        { "name": "Flyweight", "role": "Model", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "parameters": [{ "name": "extrinsic", "type": "string" }], "generateStub": true }
+        ]},
+        { "name": "FlyweightFactory", "role": "Factory", "offsetX": 260, "offsetY": 40, "members": [
+          { "kind": "Method", "name": "Get", "returnType": "Flyweight", "access": "Public", "parameters": [{ "name": "key", "type": "string" }], "generateStub": true }
+        ]}
+      ],
+      "relations": []
+    },
+    {
+      "id": "proxy",
+      "name": "Proxy",
+      "category": "Structural",
+      "description": "Заместитель контролирует доступ к другому объекту.",
+      "classes": [
+        { "name": "ISubject", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Request", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "RealSubject", "role": "Service", "offsetX": 0, "offsetY": 120, "implements": ["ISubject"], "members": [
+          { "kind": "Method", "name": "Request", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "Proxy", "role": "Handler", "offsetX": 260, "offsetY": 60, "implements": ["ISubject"], "members": [
+          { "kind": "Field", "name": "_real", "type": "RealSubject", "access": "Private" },
+          { "kind": "Method", "name": "Request", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "RealSubject", "to": "ISubject", "kind": "Implements" },
+        { "from": "Proxy", "to": "ISubject", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "observer",
+      "name": "Observer",
+      "category": "Behavioral",
+      "description": "Подписка и оповещение зависимых объектов.",
+      "classes": [
+        { "name": "ISubject", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Attach", "returnType": "void", "access": "Public", "isAbstract": true, "parameters": [{ "name": "o", "type": "IObserver" }] },
+          { "kind": "Method", "name": "Notify", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "IObserver", "role": "Listener", "isInterface": true, "offsetX": 280, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Update", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "ConcreteSubject", "role": "Model", "offsetX": 0, "offsetY": 130, "implements": ["ISubject"], "members": [
+          { "kind": "Method", "name": "Attach", "returnType": "void", "access": "Public", "generateStub": true, "parameters": [{ "name": "o", "type": "IObserver" }] },
+          { "kind": "Method", "name": "Notify", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteSubject", "to": "ISubject", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "state",
+      "name": "State",
+      "category": "Behavioral",
+      "description": "Поведение объекта меняется с внутренним состоянием.",
+      "classes": [
+        { "name": "IState", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Handle", "returnType": "void", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Context", "role": "Service", "offsetX": 260, "offsetY": 40, "members": [
+          { "kind": "Field", "name": "_state", "type": "IState", "access": "Private" },
+          { "kind": "Method", "name": "Request", "returnType": "void", "access": "Public", "generateStub": true }
+        ]},
+        { "name": "ConcreteStateA", "role": "Strategy", "offsetX": 0, "offsetY": 120, "implements": ["IState"], "members": [
+          { "kind": "Method", "name": "Handle", "returnType": "void", "access": "Public", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "Context", "to": "IState", "kind": "Uses" },
+        { "from": "ConcreteStateA", "to": "IState", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "template-method",
+      "name": "Template Method",
+      "category": "Behavioral",
+      "description": "Скелет алгоритма в базовом классе, шаги переопределяются.",
+      "classes": [
+        { "name": "AbstractClass", "role": "AbstractClass", "isAbstract": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "TemplateMethod", "returnType": "void", "access": "Public", "generateStub": true },
+          { "kind": "Method", "name": "PrimitiveOperation", "returnType": "void", "access": "Protected", "isAbstract": true }
+        ]},
+        { "name": "ConcreteClass", "role": "Service", "offsetX": 0, "offsetY": 140, "baseType": "AbstractClass", "members": [
+          { "kind": "Method", "name": "PrimitiveOperation", "returnType": "void", "access": "Protected", "generateStub": true }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteClass", "to": "AbstractClass", "kind": "Inherits" }
+      ]
+    },
+    {
+      "id": "chain-of-responsibility",
+      "name": "Chain of Responsibility",
+      "category": "Behavioral",
+      "description": "Цепочка обработчиков запроса.",
+      "classes": [
+        { "name": "Handler", "role": "Handler", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Field", "name": "_next", "type": "Handler", "access": "Protected" },
+          { "kind": "Method", "name": "SetNext", "returnType": "Handler", "access": "Public", "parameters": [{ "name": "next", "type": "Handler" }], "generateStub": true },
+          { "kind": "Method", "name": "Handle", "returnType": "void", "access": "Public", "parameters": [{ "name": "request", "type": "string" }], "generateStub": true }
+        ]}
+      ],
+      "relations": []
+    },
+    {
+      "id": "mediator",
+      "name": "Mediator",
+      "category": "Behavioral",
+      "description": "Централизованное взаимодействие компонентов через посредника.",
+      "classes": [
+        { "name": "IMediator", "role": "Interface", "isInterface": true, "offsetX": 260, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Notify", "returnType": "void", "access": "Public", "isAbstract": true, "parameters": [{ "name": "sender", "type": "object" }, { "name": "ev", "type": "string" }] }
+        ]},
+        { "name": "Colleague", "role": "Service", "offsetX": 0, "offsetY": 80, "members": [
+          { "kind": "Field", "name": "_mediator", "type": "IMediator", "access": "Protected" }
+        ]}
+      ],
+      "relations": [
+        { "from": "Colleague", "to": "IMediator", "kind": "Uses" }
+      ]
+    },
+    {
+      "id": "memento",
+      "name": "Memento",
+      "category": "Behavioral",
+      "description": "Сохранение и восстановление состояния без нарушения инкапсуляции.",
+      "classes": [
+        { "name": "Memento", "role": "Model", "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Field", "name": "State", "type": "string", "access": "Private" }
+        ]},
+        { "name": "Originator", "role": "Service", "offsetX": 260, "offsetY": 40, "members": [
+          { "kind": "Method", "name": "Save", "returnType": "Memento", "access": "Public", "generateStub": true },
+          { "kind": "Method", "name": "Restore", "returnType": "void", "access": "Public", "parameters": [{ "name": "m", "type": "Memento" }], "generateStub": true }
+        ]}
+      ],
+      "relations": []
+    },
+    {
+      "id": "visitor",
+      "name": "Visitor",
+      "category": "Behavioral",
+      "description": "Новые операции над иерархией элементов без изменения классов.",
+      "classes": [
+        { "name": "IVisitor", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "VisitConcreteA", "returnType": "void", "access": "Public", "isAbstract": true, "parameters": [{ "name": "el", "type": "ConcreteElementA" }] }
+        ]},
+        { "name": "IElement", "role": "Interface", "isInterface": true, "offsetX": 260, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Accept", "returnType": "void", "access": "Public", "isAbstract": true, "parameters": [{ "name": "v", "type": "IVisitor" }] }
+        ]},
+        { "name": "ConcreteElementA", "role": "Model", "offsetX": 260, "offsetY": 120, "implements": ["IElement"], "members": [
+          { "kind": "Method", "name": "Accept", "returnType": "void", "access": "Public", "generateStub": true, "parameters": [{ "name": "v", "type": "IVisitor" }] }
+        ]}
+      ],
+      "relations": [
+        { "from": "ConcreteElementA", "to": "IElement", "kind": "Implements" }
+      ]
+    },
+    {
+      "id": "builder",
+      "name": "Builder",
+      "category": "Creational",
+      "description": "Пошаговая сборка сложного объекта.",
+      "classes": [
+        { "name": "IBuilder", "role": "Builder", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "BuildPartA", "returnType": "void", "access": "Public", "isAbstract": true },
+          { "kind": "Method", "name": "GetResult", "returnType": "Product", "access": "Public", "isAbstract": true }
+        ]},
+        { "name": "Product", "role": "Model", "offsetX": 280, "offsetY": 80, "members": [] },
+        { "name": "Director", "role": "Manager", "offsetX": 260, "offsetY": 0, "members": [
+          { "kind": "Method", "name": "Construct", "returnType": "void", "access": "Public", "parameters": [{ "name": "builder", "type": "IBuilder" }], "generateStub": true }
+        ]}
+      ],
+      "relations": []
+    }
+  ]
+}
