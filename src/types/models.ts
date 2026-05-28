@@ -1,4 +1,4 @@
-export type TargetLanguage = 'csharp' | 'java';
+export type TargetLanguage = 'csharp' | 'java' | 'python';
 export type AppTheme = 'dark' | 'light';
 export type ConnectionPort = 'north' | 'east' | 'south' | 'west';
 
@@ -10,7 +10,23 @@ export type RelationKind =
   | 'composes'
   | 'fieldReference'
   | 'methodReference'
-  | 'usingImport';
+  | 'usingImport'
+  | 'dependsOn'
+  | 'integrates'
+  | 'callsApi'
+  | 'publishes'
+  | 'subscribes';
+
+export type IntegrationKind =
+  | 'rest'
+  | 'grpc'
+  | 'graphql'
+  | 'messageQueue'
+  | 'database'
+  | 'cache'
+  | 'auth'
+  | 'storage'
+  | 'custom';
 
 export type MemberKind = 'field' | 'property' | 'method' | 'constructor';
 export type AccessModifier = 'public' | 'private' | 'protected' | 'internal';
@@ -43,6 +59,7 @@ export type ClassRole =
 export interface ParameterDefinition {
   name: string;
   type: string;
+  defaultValue?: string;
 }
 
 export interface MemberDefinition {
@@ -57,6 +74,8 @@ export interface MemberDefinition {
   isVirtual?: boolean;
   isReadOnly?: boolean;
   generateStub?: boolean;
+  description?: string;
+  defaultValue?: string;
   parameters: ParameterDefinition[];
 }
 
@@ -94,15 +113,32 @@ export interface FolderDefinition {
   parentFolderId: string | null;
 }
 
+export interface IntegrationDefinition {
+  id: string;
+  name: string;
+  kind: IntegrationKind;
+  endpoint: string;
+  description: string;
+  protocol: string;
+  authType: string;
+  x: number;
+  y: number;
+  folderId: string | null;
+  tags: string[];
+}
+
 export interface RelationDefinition {
   id: string;
-  fromClassId: string;
-  toClassId: string;
+  fromClassId?: string;
+  toClassId?: string;
+  fromIntegrationId?: string;
+  toIntegrationId?: string;
   kind: RelationKind;
   fromPort?: ConnectionPort;
   toPort?: ConnectionPort;
   memberName?: string;
   createNewMember?: boolean;
+  label?: string;
 }
 
 export interface ProjectModel {
@@ -110,8 +146,10 @@ export interface ProjectModel {
   language: TargetLanguage;
   defaultNamespace: string;
   defaultPackage: string;
+  defaultModule: string;
   folders: FolderDefinition[];
   classes: ClassDefinition[];
+  integrations: IntegrationDefinition[];
   relations: RelationDefinition[];
 }
 
@@ -167,7 +205,8 @@ export interface TemplateRelation {
   kind: string;
 }
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+export const GRID_SIZE = 20;
 export const MAX_PROJECT_BYTES = 2_000_000;
 export const MAX_CLASSES = 200;
 export const MAX_RELATIONS = 500;

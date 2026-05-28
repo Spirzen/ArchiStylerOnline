@@ -32,6 +32,8 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'Delete') deleteSelected();
     };
     window.addEventListener('keydown', onKey);
@@ -53,11 +55,12 @@ export default function App() {
         <select
           className="input-control"
           value={project.language}
-          onChange={(e) => setLanguage(e.target.value as 'csharp' | 'java')}
+          onChange={(e) => setLanguage(e.target.value as 'csharp' | 'java' | 'python')}
           aria-label="Язык кода"
         >
           <option value="csharp">C#</option>
           <option value="java">Java</option>
+          <option value="python">Python</option>
         </select>
         <button type="button" className="btn btn-compact" onClick={() => setShowImport(true)}>
           Импорт

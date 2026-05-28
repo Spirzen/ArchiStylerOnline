@@ -1,35 +1,92 @@
 import { relationLabel, relationStyle } from '../../utils/relationKind';
 import { useDiagramStore } from '../../store/diagramStore';
-import type { ClassDefinition, RelationDefinition } from '../../types/models';
-import { bezierPath, nearestPort, portPosition } from '../../utils/diagramGeometry';
+import type { ClassDefinition, IntegrationDefinition, RelationDefinition } from '../../types/models';
+import {
+  bezierPath,
+  CARD_WIDTH,
+  cardHeight,
+  INTEGRATION_HEIGHT,
+  INTEGRATION_WIDTH,
+  integrationPortPosition,
+  nearestIntegrationPort,
+  nearestPort,
+  portPosition,
+} from '../../utils/diagramGeometry';
 
 interface Props {
   classes: ClassDefinition[];
+  integrations: IntegrationDefinition[];
   relations: RelationDefinition[];
   implicit?: boolean;
 }
 
-function getEndpoints(
-  from: ClassDefinition,
-  to: ClassDefinition,
-  rel?: RelationDefinition,
-): { x1: number; y1: number; x2: number; y2: number } {
-  const p1 = rel?.fromPort
-    ? portPosition(from, rel.fromPort, from.members.length)
-    : portPosition(from, nearestPort(from, to.x, to.y, from.members.length), from.members.length);
-  const p2 = rel?.toPort
-    ? portPosition(to, rel.toPort, to.members.length)
-    : portPosition(to, nearestPort(to, from.x, from.y, to.members.length), to.members.length);
+type Endpoint = { x: number; y: number };
+
+function classEndpoint(
+  cls: ClassDefinition,
+  port: RelationDefinition['fromPort'] | undefined,
+  toward: Endpoint,
+): Endpoint {
+  const p = port ?? nearestPort(cls, toward.x, toward.y, cls.members.length);
+  return portPosition(cls, p, cls.members.length);
+}
+
+function integrationEndpoint(
+  intg: IntegrationDefinition,
+  port: RelationDefinition['fromPort'] | undefined,
+  toward: Endpoint,
+): Endpoint {
+  const p = port ?? nearestIntegrationPort(intg, toward.x, toward.y);
+  return integrationPortPosition(intg, p);
+}
+
+function resolveEndpoints(
+  rel: RelationDefinition,
+  classes: ClassDefinition[],
+  integrations: IntegrationDefinition[],
+): { x1: number; y1: number; x2: number; y2: number } | null {
+  const fromCls = rel.fromClassId ? classes.find((c) => c.id === rel.fromClassId) : undefined;
+  const toCls = rel.toClassId ? classes.find((c) => c.id === rel.toClassId) : undefined;
+  const fromIntg = rel.fromIntegrationId
+    ? integrations.find((i) => i.id === rel.fromIntegrationId)
+    : undefined;
+  const toIntg = rel.toIntegrationId
+    ? integrations.find((i) => i.id === rel.toIntegrationId)
+    : undefined;
+
+  const toCenter = (): Endpoint => {
+    if (toCls) return { x: toCls.x + CARD_WIDTH / 2, y: toCls.y + cardHeight(toCls.members.length) / 2 };
+    if (toIntg) return { x: toIntg.x + INTEGRATION_WIDTH / 2, y: toIntg.y + INTEGRATION_HEIGHT / 2 };
+    return { x: 0, y: 0 };
+  };
+  const fromCenter = (): Endpoint => {
+    if (fromCls) return { x: fromCls.x + CARD_WIDTH / 2, y: fromCls.y + cardHeight(fromCls.members.length) / 2 };
+    if (fromIntg) return { x: fromIntg.x + INTEGRATION_WIDTH / 2, y: fromIntg.y + INTEGRATION_HEIGHT / 2 };
+    return { x: 0, y: 0 };
+  };
+
+  const tc = toCenter();
+  const fc = fromCenter();
+
+  let p1: Endpoint | null = null;
+  let p2: Endpoint | null = null;
+
+  if (fromCls) p1 = classEndpoint(fromCls, rel.fromPort, tc);
+  else if (fromIntg) p1 = integrationEndpoint(fromIntg, rel.fromPort, tc);
+
+  if (toCls) p2 = classEndpoint(toCls, rel.toPort, fc);
+  else if (toIntg) p2 = integrationEndpoint(toIntg, rel.toPort, fc);
+
+  if (!p1 || !p2) return null;
   return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
 }
 
-export function RelationLayer({ classes, relations, implicit }: Props) {
+export function RelationLayer({ classes, integrations, relations, implicit }: Props) {
   const language = useDiagramStore((s) => s.project.language);
   const selectedRelationId = useDiagramStore((s) => s.selectedRelationId);
   const selectRelation = useDiagramStore((s) => s.selectRelation);
-  const removeRelation = useDiagramStore((s) => s.removeRelation);
+  const openContextMenu = useDiagramStore((s) => s.openContextMenu);
 
-  const classMap = new Map(classes.map((c) => [c.id, c]));
   const items: { rel: RelationDefinition }[] = [...relations.map((r) => ({ rel: r }))];
 
   if (implicit) {
@@ -74,34 +131,26 @@ export function RelationLayer({ classes, relations, implicit }: Props) {
   }
 
   return (
-    <g className="relations" pointerEvents={implicit ? 'none' : 'auto'}>
-      <defs>
-        <marker id="arrow-filled" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-          <path d="M0,0 L10,3 L0,6 Z" fill="context-stroke" />
-        </marker>
-        <marker id="arrow-open" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto">
-          <path d="M0,0 L12,4 L0,8 Z" fill="none" stroke="context-stroke" strokeWidth="1.5" />
-        </marker>
-      </defs>
+    <g className="relations">
       {items.map(({ rel }) => {
-        const from = classMap.get(rel.fromClassId);
-        const to = classMap.get(rel.toClassId);
-        if (!from || !to) return null;
-        const { x1, y1, x2, y2 } = getEndpoints(from, to, rel);
+        const endpoints = resolveEndpoints(rel, classes, integrations);
+        if (!endpoints) return null;
+        const { x1, y1, x2, y2 } = endpoints;
         const style = relationStyle(rel.kind);
         const selected = selectedRelationId === rel.id;
         const path = bezierPath(x1, y1, x2, y2);
         const mx = (x1 + x2) / 2;
         const my = (y1 + y2) / 2;
         const implicitRel = rel.id.startsWith('implicit-');
+        const sw = selected ? 3.5 : 2.5;
         return (
-          <g key={rel.id} pointerEvents={implicitRel ? 'none' : 'auto'}>
+          <g key={rel.id}>
             {!implicitRel && (
               <path
                 d={path}
                 fill="none"
                 stroke="transparent"
-                strokeWidth={14}
+                strokeWidth={16}
                 style={{ cursor: 'pointer' }}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -111,7 +160,15 @@ export function RelationLayer({ classes, relations, implicit }: Props) {
                 onContextMenu={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  removeRelation(rel.id);
+                  selectRelation(rel.id);
+                  openContextMenu({
+                    screenX: e.clientX,
+                    screenY: e.clientY,
+                    worldX: mx,
+                    worldY: my,
+                    target: 'relation',
+                    targetId: rel.id,
+                  });
                 }}
               />
             )}
@@ -119,11 +176,12 @@ export function RelationLayer({ classes, relations, implicit }: Props) {
               d={path}
               fill="none"
               stroke={style.stroke}
-              strokeWidth={selected ? 3.5 : 2.5}
+              strokeWidth={sw}
               strokeDasharray={style.dash || undefined}
               markerEnd={style.marker === 'inherit' ? 'url(#arrow-open)' : 'url(#arrow-filled)'}
-              opacity={implicitRel ? 0.65 : 1}
+              opacity={implicitRel ? 0.7 : 1}
               pointerEvents="none"
+              style={{ stroke: style.stroke, color: style.stroke }}
             />
             <text
               x={mx}

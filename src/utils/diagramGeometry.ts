@@ -1,4 +1,12 @@
-import type { ClassDefinition, ConnectionPort, FolderDefinition } from '../types/models';
+import type {
+  ClassDefinition,
+  ConnectionPort,
+  FolderDefinition,
+  IntegrationDefinition,
+} from '../types/models';
+
+export const INTEGRATION_WIDTH = 200;
+export const INTEGRATION_HEIGHT = 72;
 
 export const CARD_WIDTH = 200;
 export const CARD_HEADER = 52;
@@ -76,4 +84,52 @@ export function findInnermostFolder(
   const hits = folders.filter((f) => pointInFolder(x, y, f));
   if (hits.length === 0) return null;
   return hits.reduce((a, b) => (a.width * a.height < b.width * b.height ? a : b));
+}
+
+export function integrationPortPosition(
+  intg: IntegrationDefinition,
+  port: ConnectionPort,
+): { x: number; y: number } {
+  const w = INTEGRATION_WIDTH;
+  const h = INTEGRATION_HEIGHT;
+  const cx = intg.x + w / 2;
+  const cy = intg.y + h / 2;
+  switch (port) {
+    case 'north':
+      return { x: cx, y: intg.y };
+    case 'south':
+      return { x: cx, y: intg.y + h };
+    case 'east':
+      return { x: intg.x + w, y: cy };
+    case 'west':
+      return { x: intg.x, y: cy };
+  }
+}
+
+export function nearestIntegrationPort(
+  intg: IntegrationDefinition,
+  targetX: number,
+  targetY: number,
+): ConnectionPort {
+  const ports: ConnectionPort[] = ['north', 'east', 'south', 'west'];
+  let best: ConnectionPort = 'east';
+  let bestDist = Infinity;
+  for (const p of ports) {
+    const pos = integrationPortPosition(intg, p);
+    const d = (pos.x - targetX) ** 2 + (pos.y - targetY) ** 2;
+    if (d < bestDist) {
+      bestDist = d;
+      best = p;
+    }
+  }
+  return best;
+}
+
+export function nodeCenter(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): { x: number; y: number } {
+  return { x: x + w / 2, y: y + h / 2 };
 }

@@ -157,8 +157,10 @@ export function createEmptyProject(name = 'Новая схема'): ProjectModel
     language: 'csharp',
     defaultNamespace: 'App.Architecture',
     defaultPackage: 'app.architecture',
+    defaultModule: 'app.architecture',
     folders: [],
     classes: [],
+    integrations: [],
     relations: [],
   };
 }
