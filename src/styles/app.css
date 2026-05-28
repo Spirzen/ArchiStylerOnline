@@ -192,6 +192,13 @@ select option {
   font-size: 0.8rem;
 }
 
+a.btn {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
 .field {
   display: flex;
   flex-direction: column;

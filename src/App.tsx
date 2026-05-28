@@ -74,6 +74,14 @@ export default function App() {
         <button type="button" className="btn btn-compact" onClick={() => setShowHelp(true)}>
           Справка
         </button>
+        <a
+          href="https://spirzen.ru"
+          className="btn btn-compact"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Вселенная IT
+        </a>
         <button
           type="button"
           className="btn btn-compact"
