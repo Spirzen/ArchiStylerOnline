@@ -1,0 +1,84 @@
+<mxfile host="app.diagrams.net" agent="ArchiStyler" version="22.1.0">
+  <diagram name="System Context" id="system-context">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user-swim" value="Пользователь" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" value="Браузер" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="user-swim">
+          <mxGeometry x="30" y="35" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gh-swim" value="GitHub Pages CDN" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="1320" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="spa" value="ArchiStyler Online SPA&#xa;React 19 + Vite bundle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="gh-swim">
+          <mxGeometry x="40" y="50" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="templates" value="public/templates/*.json&#xa;patterns · patterns-gof" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="gh-swim">
+          <mxGeometry x="380" y="50" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="local-swim" value="Устройство пользователя" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="420" width="1320" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ls" value="localStorage&#xa;archistyler-online-v1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="local-swim">
+          <mxGeometry x="40" y="50" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="file" value=".archistyler.json&#xa;импорт / экспорт" style="shape=document;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="local-swim">
+          <mxGeometry x="300" y="45" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ci-swim" value="GitHub Actions" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="1320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="repo" value="git push main" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="ci-swim">
+          <mxGeometry x="40" y="45" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="build" value="npm ci → tsc → vite build" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="ci-swim">
+          <mxGeometry x="220" y="45" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="deploy" value="deploy-pages" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="ci-swim">
+          <mxGeometry x="460" y="45" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="endArrow=classic;html=1;" edge="1" parent="1" source="browser" target="spa">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1l" value="HTTPS" style="edgeLabel;html=1;align=center;verticalAlign=middle;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.1" relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e2" style="endArrow=classic;html=1;" edge="1" parent="1" source="spa" target="templates">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2l" value="fetch" style="edgeLabel;html=1;" vertex="1" connectable="0" parent="e2">
+          <mxGeometry relative="1" as="geometry"><mxPoint y="-10" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e3" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="spa" target="ls">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="browser" target="file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="endArrow=classic;html=1;" edge="1" parent="1" source="file" target="spa">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5l" value="import JSON" style="edgeLabel;html=1;" vertex="1" connectable="0" parent="e5">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="e6" style="endArrow=classic;html=1;" edge="1" parent="1" source="repo" target="build">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="endArrow=classic;html=1;" edge="1" parent="1" source="build" target="deploy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="deploy" target="spa">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="540" y="580" /><mxPoint x="180" y="580" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8l" value="публикует dist" style="edgeLabel;html=1;" vertex="1" connectable="0" parent="e8">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" /></mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

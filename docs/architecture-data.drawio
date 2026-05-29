@@ -1,0 +1,78 @@
+<mxfile host="app.diagrams.net" agent="ArchiStyler" version="22.1.0">
+  <diagram name="Data Model" id="data-model">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pm" value="&lt;b&gt;ProjectModel&lt;/b&gt;&lt;hr&gt;name: string&lt;br&gt;language: TargetLanguage&lt;br&gt;defaultNamespace&lt;br&gt;defaultPackage&lt;br&gt;defaultModule" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="40" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="folder" value="&lt;b&gt;FolderDefinition&lt;/b&gt;&lt;hr&gt;id, name, segment&lt;br&gt;x, y, width, height&lt;br&gt;parentFolderId" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="280" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="class" value="&lt;b&gt;ClassDefinition&lt;/b&gt;&lt;hr&gt;id, name, role&lt;br&gt;folderId, members[]&lt;br&gt;isInterface, baseType…" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="280" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="integ" value="&lt;b&gt;IntegrationDefinition&lt;/b&gt;&lt;hr&gt;id, name, kind&lt;br&gt;endpoint, protocol&lt;br&gt;folderId, tags[]" style="swimlane;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="280" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="rel" value="&lt;b&gt;RelationDefinition&lt;/b&gt;&lt;hr&gt;id, kind: RelationKind&lt;br&gt;fromClassId / toClassId&lt;br&gt;fromIntegrationId…&lt;br&gt;fromPort, toPort" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="280" width="260" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="member" value="MemberDefinition&#xa;(внутри ClassDefinition)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="460" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pattern" value="&lt;b&gt;PatternTemplate&lt;/b&gt;&lt;hr&gt;(только чтение, JSON)&lt;br&gt;id, category&lt;br&gt;classes[], relations[]&lt;br&gt;→ applyPattern()" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="40" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="import" value="Import flow&#xa;ImportModal → validateProject&#xa;→ loadProject → persist" style="shape=process;whiteSpace=wrap;html=1;fillColor=#ffe6cc;" vertex="1" parent="1">
+          <mxGeometry x="80" y="520" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="export" value="Export flow&#xa;exportJson → downloadJson" style="shape=process;whiteSpace=wrap;html=1;fillColor=#ffe6cc;" vertex="1" parent="1">
+          <mxGeometry x="400" y="560" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="limits" value="Лимиты (validation.ts)&#xa;2 MB · 200 classes · 500 relations&#xa;SCHEMA_VERSION = 2" style="shape=note;whiteSpace=wrap;html=1;size=14;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="480" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="folders[]" style="endArrow=open;endSize=12;dashed=1;html=1;" edge="1" parent="1" source="pm" target="folder">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="classes[]" style="endArrow=open;endSize=12;dashed=1;html=1;" edge="1" parent="1" source="pm" target="class">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="integrations[]" style="endArrow=open;endSize=12;dashed=1;html=1;" edge="1" parent="1" source="pm" target="integ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="relations[]" style="endArrow=open;endSize=12;dashed=1;html=1;" edge="1" parent="1" source="pm" target="rel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" value="parent" style="endArrow=open;endSize=12;html=1;rounded=0;" edge="1" parent="1" source="folder" target="folder">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="50" y="350" /><mxPoint x="50" y="250" /><mxPoint x="190" y="250" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d6" value="folderId" style="endArrow=open;endSize=12;html=1;" edge="1" parent="1" source="class" target="folder">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d7" value="folderId" style="endArrow=open;endSize=12;html=1;" edge="1" parent="1" source="integ" target="folder">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8" value="from / to" style="endArrow=open;endSize=12;html=1;" edge="1" parent="1" source="rel" target="class">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d9" value="members" style="endArrow=open;endSize=8;html=1;dashed=1;" edge="1" parent="1" source="class" target="member">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d10" value="applyPattern" style="endArrow=classic;html=1;" edge="1" parent="1" source="pattern" target="pm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d11" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="import" target="pm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d12" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="pm" target="export">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

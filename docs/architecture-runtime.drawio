@@ -1,0 +1,90 @@
+<mxfile host="app.diagrams.net" agent="ArchiStyler" version="22.1.0">
+  <diagram name="Runtime Layers" id="runtime-layers">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="entry" value="Точка входа" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="html" value="index.html&#xa;CSP" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="entry">
+          <mxGeometry x="30" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="main" value="main.tsx" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="entry">
+          <mxGeometry x="180" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="app" value="App.tsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="entry">
+          <mxGeometry x="330" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ui" value="React UI (components/)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="1520" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="lp" value="LeftPanel&#xa;паттерны" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="ui">
+          <mxGeometry x="30" y="45" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dc" value="DiagramCanvas&#xa;канвас" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="ui">
+          <mxGeometry x="200" y="45" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ip" value="InspectorPanel&#xa;класс · код" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="ui">
+          <mxGeometry x="390" y="45" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="mod" value="HelpModal&#xa;ImportModal" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="ui">
+          <mxGeometry x="580" y="45" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="store" value="Zustand — src/store/diagramStore.ts&#xa;project · selection · zoom/pan · theme · persist()" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="1520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="storebox" value="diagramStore (центральный хаб)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;" vertex="1" parent="store">
+          <mxGeometry x="400" y="40" width="320" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="svc" value="services/" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="1520" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ts" value="templateService&#xa;loadPatterns · applyPattern" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="svc">
+          <mxGeometry x="30" y="45" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="stg" value="storage&#xa;localStorage · import/export" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="svc">
+          <mxGeometry x="260" y="45" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="val" value="validation&#xa;validateProject" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="svc">
+          <mxGeometry x="510" y="45" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="cg" value="codeGenerator&#xa;C# · Java · Python" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="svc">
+          <mxGeometry x="720" y="45" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ext" value="Внешние / статические ресурсы" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="640" width="1520" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="json" value="public/templates/*.json" style="shape=note;whiteSpace=wrap;html=1;fillColor=#f8cecc;" vertex="1" parent="ext">
+          <mxGeometry x="30" y="40" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ls" value="localStorage" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;" vertex="1" parent="ext">
+          <mxGeometry x="280" y="35" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="file" value=".archistyler.json" style="shape=document;whiteSpace=wrap;html=1;" vertex="1" parent="ext">
+          <mxGeometry x="480" y="40" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="utils" value="utils/&#xa;diagramGeometry · hitTest · snap · viewport" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="200" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r0" style="endArrow=classic;html=1;" edge="1" parent="1" source="html" target="main"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r1" style="endArrow=classic;html=1;" edge="1" parent="1" source="main" target="app"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2" style="endArrow=classic;html=1;" edge="1" parent="1" source="app" target="lp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3" style="endArrow=classic;html=1;" edge="1" parent="1" source="app" target="dc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4" style="endArrow=classic;html=1;" edge="1" parent="1" source="app" target="ip"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5" style="endArrow=classic;html=1;" edge="1" parent="1" source="lp" target="storebox"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r6" style="endArrow=classic;html=1;" edge="1" parent="1" source="dc" target="storebox"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r7" style="endArrow=classic;html=1;" edge="1" parent="1" source="ip" target="storebox"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r8" style="endArrow=classic;html=1;" edge="1" parent="1" source="storebox" target="ts"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r9" style="endArrow=classic;html=1;" edge="1" parent="1" source="storebox" target="stg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r10" style="endArrow=classic;html=1;" edge="1" parent="1" source="storebox" target="cg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r11" style="endArrow=classic;html=1;" edge="1" parent="1" source="ts" target="json"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r12" style="endArrow=classic;html=1;" edge="1" parent="1" source="stg" target="ls"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r13" style="endArrow=classic;html=1;" edge="1" parent="1" source="stg" target="file"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r14" style="endArrow=classic;html=1;dashed=1;" edge="1" parent="1" source="dc" target="utils"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r15" style="endArrow=classic;html=1;" edge="1" parent="1" source="mod" target="storebox"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r16" style="endArrow=classic;html=1;" edge="1" parent="1" source="storebox" target="val"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
