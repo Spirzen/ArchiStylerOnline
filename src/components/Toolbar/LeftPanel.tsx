@@ -19,6 +19,8 @@ export function LeftPanel() {
   const centerOn = useDiagramStore((s) => s.centerOn);
   const snapEnabled = useDiagramStore((s) => s.snapEnabled);
   const setSnapEnabled = useDiagramStore((s) => s.setSnapEnabled);
+  const smartGuidesEnabled = useDiagramStore((s) => s.smartGuidesEnabled);
+  const setSmartGuidesEnabled = useDiagramStore((s) => s.setSmartGuidesEnabled);
 
   const pattern = patterns.find((p) => p.id === selectedPatternId);
   const folder = project.folders.find((f) => f.id === selectedFolderId);
@@ -55,6 +57,14 @@ export function LeftPanel() {
       <label className="snap-toggle">
         <input type="checkbox" checked={snapEnabled} onChange={(e) => setSnapEnabled(e.target.checked)} />
         Привязка к сетке 20px
+      </label>
+      <label className="snap-toggle">
+        <input
+          type="checkbox"
+          checked={smartGuidesEnabled}
+          onChange={(e) => setSmartGuidesEnabled(e.target.checked)}
+        />
+        Умные направляющие
       </label>
 
       {(project.classes.length > 0 || project.integrations.length > 0) && (
@@ -124,8 +134,8 @@ export function LeftPanel() {
 
       <div className="section-title">Подсказка</div>
       <p className="pattern-desc">
-        <strong>Связь:</strong> потяните от цветной точки на краю карточки к другому элементу и отпустите. Или Shift+клик по
-        карточке и потяните. <strong>Ctrl+C / Ctrl+V</strong> — копировать/вставить. ПКМ — меню.
+        <strong>Выделение:</strong> рамка на холсте, Ctrl+клик, Ctrl+A. <strong>Связь:</strong> точка на краю или Shift+клик
+        по карточке. <strong>Ctrl+C / Ctrl+V</strong> — копировать/вставить. ПКМ — меню.
       </p>
     </aside>
   );

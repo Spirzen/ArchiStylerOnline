@@ -1,4 +1,12 @@
 import type { AccessModifier, ClassDefinition, MemberDefinition, MemberKind, TargetLanguage } from '../../types/models';
+import {
+  constructorMemberName,
+  createConstructorMember,
+  defaultFieldName,
+  defaultMethodName,
+  defaultObjectType,
+  normalizeConstructorMember,
+} from '../../utils/memberNaming';
 import { newId } from '../../utils/id';
 
 interface Props {
@@ -11,7 +19,13 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
   const members = cls.members;
 
   const updateMember = (id: string, patch: Partial<MemberDefinition>) => {
-    onUpdate(members.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+    onUpdate(
+      members.map((m) => {
+        if (m.id !== id) return m;
+        const next = { ...m, ...patch };
+        return normalizeConstructorMember(next, cls.name, language);
+      }),
+    );
   };
 
   const updateParam = (
@@ -45,7 +59,9 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
         <details key={m.id} className="member-block" open={members.length <= 4}>
           <summary className="member-summary">
             <span className="member-kind-badge">{m.kind}</span>
-            <strong>{m.name || '—'}</strong>
+            <strong>
+              {m.kind === 'constructor' ? constructorMemberName(cls.name, language) : m.name || '—'}
+            </strong>
             <button
               type="button"
               className="btn btn-compact btn-icon"
@@ -74,22 +90,35 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
             </div>
             <div className="field-row">
               <label>Имя</label>
-              <input value={m.name} onChange={(e) => updateMember(m.id, { name: e.target.value })} />
+              {m.kind === 'constructor' ? (
+                <input
+                  value={constructorMemberName(cls.name, language)}
+                  readOnly
+                  disabled
+                  title={
+                    language === 'python'
+                      ? 'В Python конструктор всегда называется __init__'
+                      : 'Имя конструктора совпадает с именем класса'
+                  }
+                />
+              ) : (
+                <input value={m.name} onChange={(e) => updateMember(m.id, { name: e.target.value })} />
+              )}
             </div>
+            {m.kind !== 'constructor' && (
             <div className="field-row">
               <label>{m.kind === 'method' ? 'Возврат' : 'Тип'}</label>
               <input
-                value={m.kind === 'method' || m.kind === 'constructor' ? m.returnType : m.type}
+                value={m.kind === 'method' ? m.returnType : m.type}
                 onChange={(e) =>
                   updateMember(
                     m.id,
-                    m.kind === 'method' || m.kind === 'constructor'
-                      ? { returnType: e.target.value }
-                      : { type: e.target.value },
+                    m.kind === 'method' ? { returnType: e.target.value } : { type: e.target.value },
                   )
                 }
               />
             </div>
+            )}
             {m.kind === 'field' && (
               <div className="field-row">
                 <label>Значение по умолчанию</label>
@@ -114,14 +143,18 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
               </select>
             </div>
             <div className="member-flags">
+              {m.kind !== 'constructor' && (
               <label>
                 <input type="checkbox" checked={!!m.isStatic} onChange={(e) => updateMember(m.id, { isStatic: e.target.checked })} />
                 static
               </label>
+              )}
+              {m.kind !== 'constructor' && (
               <label>
                 <input type="checkbox" checked={!!m.isAbstract} onChange={(e) => updateMember(m.id, { isAbstract: e.target.checked })} />
                 abstract
               </label>
+              )}
               {language === 'csharp' && m.kind === 'property' && (
                 <label>
                   <input type="checkbox" checked={!!m.isVirtual} onChange={(e) => updateMember(m.id, { isVirtual: e.target.checked })} />
@@ -204,9 +237,9 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
               {
                 id: newId(),
                 kind: 'method',
-                name: 'execute',
+                name: defaultMethodName(language),
                 type: '',
-                returnType: 'void',
+                returnType: language === 'python' ? 'None' : 'void',
                 access: 'public',
                 parameters: [],
                 generateStub: true,
@@ -219,14 +252,21 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
         <button
           type="button"
           className="btn btn-compact"
+          onClick={() => onUpdate([...members, createConstructorMember(cls.name, language)])}
+        >
+          + Конструктор
+        </button>
+        <button
+          type="button"
+          className="btn btn-compact"
           onClick={() =>
             onUpdate([
               ...members,
               {
                 id: newId(),
                 kind: 'field',
-                name: '_value',
-                type: language === 'python' ? 'Any' : 'object',
+                name: defaultFieldName(language),
+                type: defaultObjectType(language),
                 returnType: '',
                 access: 'private',
                 parameters: [],
@@ -246,7 +286,7 @@ export function MemberEditor({ cls, language, onUpdate }: Props) {
                 id: newId(),
                 kind: 'property',
                 name: 'Value',
-                type: language === 'python' ? 'Any' : 'object',
+                type: defaultObjectType(language),
                 returnType: '',
                 access: 'public',
                 parameters: [],

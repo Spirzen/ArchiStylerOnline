@@ -8,6 +8,7 @@ import {
   type ProjectModel,
   type RelationKind,
 } from '../types/models';
+import { normalizeClassMembers } from '../utils/memberNaming';
 
 const SAFE_NAME = /^[\w.\u0400-\u04FF]{1,80}$/;
 
@@ -79,12 +80,17 @@ export function validateProject(data: unknown): ProjectModel | null {
     if (!c || typeof c !== 'object') continue;
     const co = c as Record<string, unknown>;
     if (typeof co.id !== 'string' || typeof co.name !== 'string') continue;
+    const className = sanitizeName(co.name) || 'Class';
     const members = Array.isArray(co.members)
-      ? co.members.slice(0, 80).map(parseMember).filter(Boolean)
+      ? normalizeClassMembers(
+          co.members.slice(0, 80).map(parseMember).filter(Boolean) as ProjectModel['classes'][0]['members'],
+          className,
+          language,
+        )
       : [];
     project.classes.push({
       id: co.id,
-      name: sanitizeName(co.name) || 'Class',
+      name: className,
       x: clampNum(co.x, 0, 20000),
       y: clampNum(co.y, 0, 20000),
       namespace: typeof co.namespace === 'string' ? sanitizeName(co.namespace) : defaultNamespace,

@@ -5,8 +5,19 @@ import type {
   RelationKind,
   TemplateClass,
 } from '../types/models';
+import {
+  CARD_HEADER,
+  CARD_LINE,
+  CARD_MAX_LINES,
+  CARD_PADDING,
+  CARD_WIDTH,
+} from '../utils/diagramGeometry';
 import { newId } from '../utils/id';
+import { normalizeClassMembers } from '../utils/memberNaming';
 import { applyRelationToModel } from '../utils/relationKind';
+import { snapToGrid } from '../utils/snap';
+
+const STACK_GAP = 88;
 
 function parseRelationKind(k: string): RelationKind {
   const map: Record<string, RelationKind> = {
@@ -23,6 +34,64 @@ function parseRelationKind(k: string): RelationKind {
     uses: 'uses',
   };
   return map[k] ?? 'uses';
+}
+
+function estimateCardHeight(tc: TemplateClass): number {
+  const lines = Math.min(tc.members?.length ?? 0, CARD_MAX_LINES);
+  return CARD_HEADER + lines * CARD_LINE + CARD_PADDING;
+}
+
+interface PlacedClass {
+  name: string;
+  x: number;
+  y: number;
+  tc: TemplateClass;
+}
+
+function reflowPatternLayout(
+  project: ProjectModel,
+  pattern: PatternTemplate,
+  nameToId: Map<string, string>,
+  placed: PlacedClass[],
+): void {
+  const byName = (name: string) => placed.find((p) => p.name === name);
+
+  const applyPos = (p: PlacedClass) => {
+    const cls = project.classes.find((c) => c.id === nameToId.get(p.name));
+    if (!cls) return;
+    cls.x = p.x;
+    cls.y = p.y;
+  };
+
+  for (const tr of pattern.relations) {
+    const kind = parseRelationKind(tr.kind);
+    if (kind !== 'inherits' && kind !== 'implements') continue;
+    const child = byName(tr.from);
+    const parent = byName(tr.to);
+    if (!child || !parent) continue;
+    if (Math.abs(child.x - parent.x) <= CARD_WIDTH) {
+      const minY = parent.y + estimateCardHeight(parent.tc) + STACK_GAP;
+      if (child.y < minY) {
+        child.y = snapToGrid(minY);
+        applyPos(child);
+      }
+    }
+  }
+
+  for (const tr of pattern.relations) {
+    const kind = parseRelationKind(tr.kind);
+    if (kind !== 'uses' && kind !== 'aggregates' && kind !== 'composes') continue;
+    const from = byName(tr.from);
+    const to = byName(tr.to);
+    if (!from || !to) continue;
+    if (Math.abs(from.x - to.x) > CARD_WIDTH * 0.6) {
+      const rowY = snapToGrid(Math.max(from.y, to.y));
+      from.y = rowY;
+      to.y = rowY;
+      applyPos(from);
+      applyPos(to);
+    }
+  }
 }
 
 export async function loadPatterns(baseUrl: string): Promise<PatternTemplate[]> {
@@ -49,6 +118,7 @@ export function applyPattern(
 ): void {
   const nameToId = new Map<string, string>();
   const folderNameToId = new Map<string, string>();
+  const placed: PlacedClass[] = [];
 
   for (const tf of pattern.folders ?? []) {
     const folderId = newId();
@@ -66,19 +136,22 @@ export function applyPattern(
   }
 
   for (const tc of pattern.classes) {
-    let classX = originX + tc.offsetX;
-    let classY = originY + tc.offsetY;
+    let classX = snapToGrid(originX + tc.offsetX);
+    let classY = snapToGrid(originY + tc.offsetY);
     let folderId: string | null = null;
     if (tc.folder && folderNameToId.has(tc.folder)) {
       folderId = folderNameToId.get(tc.folder)!;
       const folder = project.folders.find((f) => f.id === folderId)!;
-      classX = folder.x + 20 + tc.offsetX;
-      classY = folder.y + 44 + tc.offsetY;
+      classX = snapToGrid(folder.x + 20 + tc.offsetX);
+      classY = snapToGrid(folder.y + 44 + tc.offsetY);
     }
     const cls = templateClassToDefinition(tc, classX, classY, folderId, project);
     project.classes.push(cls);
     nameToId.set(tc.name, cls.id);
+    placed.push({ name: tc.name, x: classX, y: classY, tc });
   }
+
+  reflowPatternLayout(project, pattern, nameToId, placed);
 
   for (const tr of pattern.relations) {
     const fromId = nameToId.get(tr.from);
@@ -148,6 +221,7 @@ function templateClassToDefinition(
       parameters: (tm.parameters ?? []).map((p) => ({ name: p.name, type: p.type })),
     });
   }
+  cls.members = normalizeClassMembers(cls.members, cls.name, project.language);
   return cls;
 }
 

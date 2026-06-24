@@ -12,6 +12,51 @@ export type HitNode =
   | { type: 'class'; id: string; cls: ClassDefinition }
   | { type: 'integration'; id: string; integration: IntegrationDefinition };
 
+export interface WorldRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function classBounds(cls: ClassDefinition): WorldRect {
+  return {
+    x: cls.x,
+    y: cls.y,
+    width: CARD_WIDTH,
+    height: cardHeight(cls.members.length),
+  };
+}
+
+function integrationBounds(intg: IntegrationDefinition): WorldRect {
+  return {
+    x: intg.x,
+    y: intg.y,
+    width: INTEGRATION_WIDTH,
+    height: INTEGRATION_HEIGHT,
+  };
+}
+
+function rectsOverlap(a: WorldRect, b: WorldRect): boolean {
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+/** Узлы, чьи границы пересекаются с прямоугольником (частичное попадание). */
+export function findNodesInRect(rect: WorldRect, project: ProjectModel): HitNode[] {
+  const hits: HitNode[] = [];
+  for (const cls of project.classes) {
+    if (rectsOverlap(classBounds(cls), rect)) {
+      hits.push({ type: 'class', id: cls.id, cls });
+    }
+  }
+  for (const intg of project.integrations) {
+    if (rectsOverlap(integrationBounds(intg), rect)) {
+      hits.push({ type: 'integration', id: intg.id, integration: intg });
+    }
+  }
+  return hits;
+}
+
 const DROP_PAD = 16;
 
 function hitClass(cls: ClassDefinition, worldX: number, worldY: number): boolean {

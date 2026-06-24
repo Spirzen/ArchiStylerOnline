@@ -8,6 +8,7 @@ export function ContextMenu() {
   const copySelection = useDiagramStore((s) => s.copySelection);
   const pasteClipboard = useDiagramStore((s) => s.pasteClipboard);
   const deleteSelected = useDiagramStore((s) => s.deleteSelected);
+  const duplicateSelected = useDiagramStore((s) => s.duplicateSelected);
   const addClass = useDiagramStore((s) => s.addClass);
   const addIntegration = useDiagramStore((s) => s.addIntegration);
   const startLinkFromSelected = useDiagramStore((s) => s.startLinkFromSelected);
@@ -47,6 +48,7 @@ export function ContextMenu() {
   } else if (menu.target === 'class' || menu.target === 'integration') {
     items.push(
       { label: 'Копировать (Ctrl+C)', action: () => { copySelection(); closeContextMenu(); } },
+      { label: 'Дублировать (Ctrl+D)', action: () => { duplicateSelected(); closeContextMenu(); } },
       {
         label: 'Вставить (Ctrl+V)',
         action: () => { pasteClipboard(menu.worldX, menu.worldY); closeContextMenu(); },

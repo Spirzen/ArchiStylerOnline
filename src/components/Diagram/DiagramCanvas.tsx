@@ -1,8 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { registerDiagramRefs } from '../../services/diagramRefs';
 import { useDiagramStore } from '../../store/diagramStore';
-import type { ConnectionPort } from '../../types/models';
+import type { ConnectionPort, ProjectModel } from '../../types/models';
+import {
+  bezierPath,
+  cardHeight,
+  CARD_WIDTH,
+  INTEGRATION_HEIGHT,
+  INTEGRATION_WIDTH,
+  integrationPortPosition,
+  portPosition,
+} from '../../utils/diagramGeometry';
 import { nearestPortFromIntegrationLocal, nearestPortFromLocal } from '../../utils/hitTest';
-import { bezierPath, cardHeight, integrationPortPosition, portPosition } from '../../utils/diagramGeometry';
+import {
+  computeSnap,
+  type ActiveSnap,
+  type Guide,
+  type SnapNode,
+} from '../../utils/snapping';
 import { clientToWorld, wheelZoomFactor } from '../../utils/viewport';
 import { ClassCard } from './ClassCard';
 import { ContextMenu } from './ContextMenu';
@@ -14,20 +29,45 @@ import { RelationPicker } from './RelationPicker';
 const WORLD_W = 3200;
 const WORLD_H = 2400;
 
+function buildSnapNodes(project: ProjectModel, excludeId?: string): SnapNode[] {
+  const nodes: SnapNode[] = [];
+  for (const c of project.classes) {
+    if (c.id === excludeId) continue;
+    nodes.push({
+      id: c.id,
+      position: { x: c.x, y: c.y },
+      width: CARD_WIDTH,
+      height: cardHeight(c.members.length),
+    });
+  }
+  for (const i of project.integrations) {
+    if (i.id === excludeId) continue;
+    nodes.push({
+      id: i.id,
+      position: { x: i.x, y: i.y },
+      width: INTEGRATION_WIDTH,
+      height: INTEGRATION_HEIGHT,
+    });
+  }
+  return nodes;
+}
+
 export function DiagramCanvas() {
   const project = useDiagramStore((s) => s.project);
   const zoom = useDiagramStore((s) => s.zoom);
   const panX = useDiagramStore((s) => s.panX);
   const panY = useDiagramStore((s) => s.panY);
-  const selectedClassId = useDiagramStore((s) => s.selectedClassId);
+  const selectedClassIds = useDiagramStore((s) => s.selectedClassIds);
   const selectedFolderId = useDiagramStore((s) => s.selectedFolderId);
-  const selectedIntegrationId = useDiagramStore((s) => s.selectedIntegrationId);
+  const selectedIntegrationIds = useDiagramStore((s) => s.selectedIntegrationIds);
   const linkDraft = useDiagramStore((s) => s.linkDraft);
   const linkHoverTargetId = useDiagramStore((s) => s.linkHoverTargetId);
   const linkAwaitingTarget = useDiagramStore((s) => s.linkAwaitingTarget);
   const zoomAt = useDiagramStore((s) => s.zoomAt);
   const setPan = useDiagramStore((s) => s.setPan);
   const selectClass = useDiagramStore((s) => s.selectClass);
+  const clearSelection = useDiagramStore((s) => s.clearSelection);
+  const selectInRect = useDiagramStore((s) => s.selectInRect);
   const selectFolder = useDiagramStore((s) => s.selectFolder);
   const selectIntegration = useDiagramStore((s) => s.selectIntegration);
   const selectRelation = useDiagramStore((s) => s.selectRelation);
@@ -45,22 +85,61 @@ export function DiagramCanvas() {
   const pasteClipboard = useDiagramStore((s) => s.pasteClipboard);
   const openContextMenu = useDiagramStore((s) => s.openContextMenu);
   const closeContextMenu = useDiagramStore((s) => s.closeContextMenu);
+  const smartGuidesEnabled = useDiagramStore((s) => s.smartGuidesEnabled);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const viewportRef = useRef<SVGGElement>(null);
   const linkingRef = useRef(false);
+  const activeSnaps = useRef<Map<string, ActiveSnap>>(new Map());
+  const [guides, setGuides] = useState<Guide[]>([]);
   const [panning, setPanning] = useState(false);
+  const [marquee, setMarquee] = useState<{ x: number; y: number; width: number; height: number } | null>(
+    null,
+  );
+
+  type NodeOrigin = { x: number; y: number; kind: 'class' | 'integration' };
 
   const dragRef = useRef<{
-    kind: 'class' | 'folder' | 'integration' | 'pan';
+    kind: 'class' | 'folder' | 'integration' | 'pan' | 'marquee' | 'group';
     id?: string;
     startX: number;
     startY: number;
     origX?: number;
     origY?: number;
+    groupStartWorld?: { x: number; y: number };
+    groupOrigins?: Map<string, NodeOrigin>;
     moved?: boolean;
   } | null>(null);
+
+  const selectionCount = selectedClassIds.length + selectedIntegrationIds.length;
+
+  const buildGroupOrigins = (): Map<string, NodeOrigin> => {
+    const origins = new Map<string, NodeOrigin>();
+    const state = useDiagramStore.getState();
+    for (const id of state.selectedClassIds) {
+      const cls = state.project.classes.find((c) => c.id === id);
+      if (cls) origins.set(id, { x: cls.x, y: cls.y, kind: 'class' });
+    }
+    for (const id of state.selectedIntegrationIds) {
+      const intg = state.project.integrations.find((i) => i.id === id);
+      if (intg) origins.set(id, { x: intg.x, y: intg.y, kind: 'integration' });
+    }
+    return origins;
+  };
+
+  const startGroupDrag = (e: React.PointerEvent) => {
+    const w = toWorld(e.clientX, e.clientY);
+    dragRef.current = {
+      kind: 'group',
+      startX: e.clientX,
+      startY: e.clientY,
+      groupStartWorld: w,
+      groupOrigins: buildGroupOrigins(),
+      moved: false,
+    };
+    svgRef.current?.setPointerCapture(e.pointerId);
+  };
 
   const toWorld = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
@@ -131,6 +210,11 @@ export function DiagramCanvas() {
     beginLinkFromIntegrationPort(integrationId, port, e);
   };
 
+  useLayoutEffect(() => {
+    registerDiagramRefs(svgRef.current, viewportRef.current);
+    return () => registerDiagramRefs(null, null);
+  });
+
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -151,6 +235,7 @@ export function DiagramCanvas() {
       if (e.key === 'Escape') {
         cancelLink();
         closeContextMenu();
+        clearSelection();
       }
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -182,7 +267,7 @@ export function DiagramCanvas() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [cancelLink, closeContextMenu, nudgeSelected, copySelection, pasteClipboard]);
+  }, [cancelLink, closeContextMenu, clearSelection, nudgeSelected, copySelection, pasteClipboard]);
 
   const openMenuAt = (e: React.MouseEvent, target: 'canvas' | 'class' | 'integration' | 'relation', targetId?: string) => {
     e.preventDefault();
@@ -204,7 +289,6 @@ export function DiagramCanvas() {
   const onPointerDown = (e: React.PointerEvent) => {
     const target = e.target as SVGElement;
     if (target.dataset.canvasBg !== 'true') return;
-    if (e.button !== 0) return;
 
     closeContextMenu();
     if (useDiagramStore.getState().linkDraft) {
@@ -212,12 +296,23 @@ export function DiagramCanvas() {
       return;
     }
 
-    setPanning(true);
-    dragRef.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, moved: false };
-    selectClass(null);
-    selectFolder(null);
-    selectIntegration(null);
-    selectRelation(null);
+    if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+      setPanning(true);
+      dragRef.current = { kind: 'pan', startX: e.clientX, startY: e.clientY, moved: false };
+      svgRef.current?.setPointerCapture(e.pointerId);
+      return;
+    }
+
+    if (e.button !== 0) return;
+
+    const screen = toScreen(e.clientX, e.clientY);
+    setMarquee({ x: screen.x, y: screen.y, width: 0, height: 0 });
+    dragRef.current = {
+      kind: 'marquee',
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+    };
     svgRef.current?.setPointerCapture(e.pointerId);
   };
 
@@ -237,14 +332,86 @@ export function DiagramCanvas() {
       const { panX: px, panY: py } = useDiagramStore.getState();
       setPan(px + dx, py + dy);
       dragRef.current = { ...d, startX: e.clientX, startY: e.clientY };
+    } else if (d.kind === 'marquee') {
+      const dx = e.clientX - d.startX;
+      const dy = e.clientY - d.startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
+      const a = toScreen(d.startX, d.startY);
+      const b = toScreen(e.clientX, e.clientY);
+      setMarquee({
+        x: Math.min(a.x, b.x),
+        y: Math.min(a.y, b.y),
+        width: Math.abs(b.x - a.x),
+        height: Math.abs(b.y - a.y),
+      });
+    } else if (d.kind === 'group' && d.groupOrigins && d.groupStartWorld) {
+      d.moved = true;
+      const w = toWorld(e.clientX, e.clientY);
+      const dx = w.x - d.groupStartWorld.x;
+      const dy = w.y - d.groupStartWorld.y;
+      for (const [id, orig] of d.groupOrigins) {
+        if (orig.kind === 'class') moveClass(id, orig.x + dx, orig.y + dy);
+        else moveIntegration(id, orig.x + dx, orig.y + dy);
+      }
     } else if (d.kind === 'class' && d.id) {
       d.moved = true;
       const w = toWorld(e.clientX, e.clientY);
-      moveClass(d.id, w.x - (d.origX ?? 0), w.y - (d.origY ?? 0));
+      let nx = w.x - (d.origX ?? 0);
+      let ny = w.y - (d.origY ?? 0);
+      const state = useDiagramStore.getState();
+      if (state.smartGuidesEnabled) {
+        const cls = state.project.classes.find((c) => c.id === d.id);
+        if (cls) {
+          const dragNode: SnapNode = {
+            id: d.id,
+            position: { x: nx, y: ny },
+            width: CARD_WIDTH,
+            height: cardHeight(cls.members.length),
+          };
+          const snap = computeSnap(
+            dragNode,
+            { x: nx, y: ny },
+            buildSnapNodes(state.project, d.id),
+            state.zoom,
+            activeSnaps.current.get(d.id) ?? { x: null, y: null },
+          );
+          activeSnaps.current.set(d.id, snap.activeSnap);
+          setGuides(snap.guides);
+          nx = snap.position.x;
+          ny = snap.position.y;
+        }
+      } else if (guides.length > 0) {
+        setGuides([]);
+      }
+      moveClass(d.id, nx, ny);
     } else if (d.kind === 'integration' && d.id) {
       d.moved = true;
       const w = toWorld(e.clientX, e.clientY);
-      moveIntegration(d.id, w.x - (d.origX ?? 0), w.y - (d.origY ?? 0));
+      let nx = w.x - (d.origX ?? 0);
+      let ny = w.y - (d.origY ?? 0);
+      const state = useDiagramStore.getState();
+      if (state.smartGuidesEnabled) {
+        const dragNode: SnapNode = {
+          id: d.id,
+          position: { x: nx, y: ny },
+          width: INTEGRATION_WIDTH,
+          height: INTEGRATION_HEIGHT,
+        };
+        const snap = computeSnap(
+          dragNode,
+          { x: nx, y: ny },
+          buildSnapNodes(state.project, d.id),
+          state.zoom,
+          activeSnaps.current.get(d.id) ?? { x: null, y: null },
+        );
+        activeSnaps.current.set(d.id, snap.activeSnap);
+        setGuides(snap.guides);
+        nx = snap.position.x;
+        ny = snap.position.y;
+      } else if (guides.length > 0) {
+        setGuides([]);
+      }
+      moveIntegration(d.id, nx, ny);
     } else if (d.kind === 'folder' && d.id) {
       d.moved = true;
       const { zoom: z } = useDiagramStore.getState();
@@ -263,7 +430,28 @@ export function DiagramCanvas() {
     }
 
     const kind = dragRef.current?.kind;
-    if (kind === 'class' || kind === 'folder' || kind === 'integration') {
+    const dragId = dragRef.current?.id;
+    const moved = dragRef.current?.moved;
+
+    if (kind === 'marquee') {
+      if (!moved || !marquee || marquee.width < 6 || marquee.height < 6) {
+        clearSelection();
+      } else {
+        const w1 = toWorld(dragRef.current!.startX, dragRef.current!.startY);
+        const w2 = toWorld(e.clientX, e.clientY);
+        selectInRect({
+          x: Math.min(w1.x, w2.x),
+          y: Math.min(w1.y, w2.y),
+          width: Math.abs(w2.x - w1.x),
+          height: Math.abs(w2.y - w1.y),
+        });
+      }
+      setMarquee(null);
+    }
+
+    if (kind === 'class' || kind === 'folder' || kind === 'integration' || kind === 'group') {
+      if (dragId) activeSnaps.current.delete(dragId);
+      setGuides([]);
       persist();
     }
     dragRef.current = null;
@@ -290,9 +478,23 @@ export function DiagramCanvas() {
       return;
     }
 
+    if (e.ctrlKey || e.metaKey) {
+      selectClass(id, true);
+      return;
+    }
+
+    const st = useDiagramStore.getState();
+    const inSel = st.selectedClassIds.includes(id);
+    const multi = st.selectedClassIds.length + st.selectedIntegrationIds.length > 1;
+    if (!inSel) selectClass(id);
+
+    if (inSel && multi) {
+      startGroupDrag(e);
+      return;
+    }
+
     const cls = project.classes.find((c) => c.id === id)!;
     const w = toWorld(e.clientX, e.clientY);
-    selectClass(id);
     dragRef.current = {
       kind: 'class',
       id,
@@ -320,9 +522,23 @@ export function DiagramCanvas() {
       return;
     }
 
+    if (e.ctrlKey || e.metaKey) {
+      selectIntegration(id, true);
+      return;
+    }
+
+    const st = useDiagramStore.getState();
+    const inSel = st.selectedIntegrationIds.includes(id);
+    const multi = st.selectedClassIds.length + st.selectedIntegrationIds.length > 1;
+    if (!inSel) selectIntegration(id);
+
+    if (inSel && multi) {
+      startGroupDrag(e);
+      return;
+    }
+
     const intg = project.integrations.find((i) => i.id === id)!;
     const w = toWorld(e.clientX, e.clientY);
-    selectIntegration(id);
     dragRef.current = {
       kind: 'integration',
       id,
@@ -403,7 +619,7 @@ export function DiagramCanvas() {
   return (
     <div
       ref={wrapRef}
-      className={`canvas-wrap ${panning ? 'panning' : ''} ${isLinking ? 'linking' : ''}`}
+      className={`canvas-wrap ${panning ? 'panning' : ''} ${isLinking ? 'linking' : ''} ${marquee ? 'selecting' : ''}`}
       onContextMenu={(e) => openMenuAt(e, 'canvas')}
     >
       <svg
@@ -459,7 +675,7 @@ export function DiagramCanvas() {
             <IntegrationCard
               key={intg.id}
               integration={intg}
-              selected={selectedIntegrationId === intg.id}
+              selected={selectedIntegrationIds.includes(intg.id)}
               linkTarget={linkHoverTargetId === intg.id}
               onBodyPointerDown={(e) => onIntegrationBodyDown(intg.id, e)}
               onPortPointerDown={(e, port) => beginLinkFromIntegrationPort(intg.id, port, e)}
@@ -471,7 +687,7 @@ export function DiagramCanvas() {
             <ClassCard
               key={cls.id}
               cls={cls}
-              selected={selectedClassId === cls.id}
+              selected={selectedClassIds.includes(cls.id)}
               linkTarget={linkHoverTargetId === cls.id}
               onBodyPointerDown={(e) => onClassBodyDown(cls.id, e)}
               onPortPointerDown={(e, port) => beginLinkFromClassPort(cls.id, port, e)}
@@ -502,6 +718,57 @@ export function DiagramCanvas() {
           )}
         </g>
       </svg>
+
+      {marquee && marquee.width > 2 && (
+        <div
+          className="selection-marquee"
+          style={{
+            left: marquee.x,
+            top: marquee.y,
+            width: marquee.width,
+            height: marquee.height,
+          }}
+        />
+      )}
+
+      {selectionCount > 1 && !marquee && (
+        <div className="selection-count-badge">{selectionCount} выбрано</div>
+      )}
+
+      {smartGuidesEnabled && guides.length > 0 && (
+        <svg className="smart-guides-overlay" aria-hidden>
+          {guides.map((g, i) => {
+            if (g.axis === 'x') {
+              const x = panX + g.pos * zoom;
+              return (
+                <line
+                  key={i}
+                  x1={x}
+                  x2={x}
+                  y1={panY + g.from * zoom}
+                  y2={panY + g.to * zoom}
+                  stroke="#ef4444"
+                  strokeWidth={1}
+                  strokeDasharray="4 3"
+                />
+              );
+            }
+            const y = panY + g.pos * zoom;
+            return (
+              <line
+                key={i}
+                x1={panX + g.from * zoom}
+                x2={panX + g.to * zoom}
+                y1={y}
+                y2={y}
+                stroke="#ef4444"
+                strokeWidth={1}
+                strokeDasharray="4 3"
+              />
+            );
+          })}
+        </svg>
+      )}
 
       {isLinking && (
         <div className="link-hint-banner">Отпустите на целевом классе или сервисе · Shift — связь с тела карточки</div>

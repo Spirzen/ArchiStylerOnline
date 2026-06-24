@@ -9,16 +9,16 @@
         { "name": "IView", "role": "Interface", "isInterface": true, "offsetX": 0, "offsetY": 0, "members": [
           { "kind": "Method", "name": "Show", "returnType": "void", "access": "Public", "isAbstract": true }
         ]},
-        { "name": "View", "role": "View", "offsetX": 0, "offsetY": 140, "implements": ["IView"], "members": [
+        { "name": "View", "role": "View", "offsetX": 0, "offsetY": 160, "implements": ["IView"], "members": [
           { "kind": "Method", "name": "Show", "returnType": "void", "access": "Public", "generateStub": true }
         ]},
         { "name": "IModel", "role": "Interface", "isInterface": true, "offsetX": 280, "offsetY": 0, "members": [
           { "kind": "Method", "name": "Load", "returnType": "void", "access": "Public", "isAbstract": true }
         ]},
-        { "name": "Model", "role": "Model", "offsetX": 280, "offsetY": 140, "implements": ["IModel"], "members": [
+        { "name": "Model", "role": "Model", "offsetX": 280, "offsetY": 160, "implements": ["IModel"], "members": [
           { "kind": "Method", "name": "Load", "returnType": "void", "access": "Public", "generateStub": true }
         ]},
-        { "name": "Presenter", "role": "Presenter", "offsetX": 140, "offsetY": 300, "members": [
+        { "name": "Presenter", "role": "Presenter", "offsetX": 140, "offsetY": 320, "members": [
           { "kind": "Field", "name": "_view", "type": "IView", "access": "Private" },
           { "kind": "Field", "name": "_model", "type": "IModel", "access": "Private" },
           { "kind": "Constructor", "name": "Presenter", "access": "Public", "parameters": [
@@ -40,21 +40,22 @@
       "category": "Architectural",
       "description": "Model-View-ViewModel with data binding oriented API.",
       "classes": [
-        { "name": "View", "role": "View", "offsetX": 0, "offsetY": 0, "members": [
+        { "name": "View", "role": "View", "offsetX": 0, "offsetY": 120, "members": [
           { "kind": "Property", "name": "DataContext", "type": "object", "access": "Public" }
         ]},
-        { "name": "ViewModelBase", "role": "ViewModel", "isAbstract": true, "offsetX": 260, "offsetY": 0, "members": [
+        { "name": "ViewModelBase", "role": "ViewModel", "isAbstract": true, "offsetX": 280, "offsetY": 0, "members": [
           { "kind": "Method", "name": "OnPropertyChanged", "returnType": "void", "access": "Protected", "parameters": [{ "name": "name", "type": "string" }], "generateStub": true }
         ]},
-        { "name": "MainViewModel", "role": "ViewModel", "offsetX": 260, "offsetY": 140, "baseType": "ViewModelBase", "members": [
+        { "name": "MainViewModel", "role": "ViewModel", "offsetX": 280, "offsetY": 180, "baseType": "ViewModelBase", "members": [
           { "kind": "Property", "name": "Title", "type": "string", "access": "Public" },
           { "kind": "Method", "name": "LoadCommand", "returnType": "void", "access": "Public", "generateStub": true }
         ]},
-        { "name": "Model", "role": "Model", "offsetX": 520, "offsetY": 70, "members": [
+        { "name": "Model", "role": "Model", "offsetX": 560, "offsetY": 180, "members": [
           { "kind": "Method", "name": "Fetch", "returnType": "object", "access": "Public", "generateStub": true }
         ]}
       ],
       "relations": [
+        { "from": "View", "to": "MainViewModel", "kind": "Uses" },
         { "from": "MainViewModel", "to": "ViewModelBase", "kind": "Inherits" },
         { "from": "MainViewModel", "to": "Model", "kind": "Uses" }
       ]
@@ -85,10 +86,10 @@
         { "name": "Creator", "role": "Factory", "isAbstract": true, "offsetX": 0, "offsetY": 0, "members": [
           { "kind": "Method", "name": "CreateProduct", "returnType": "IProduct", "access": "Public", "isAbstract": true }
         ]},
-        { "name": "ConcreteCreator", "role": "Factory", "offsetX": 260, "offsetY": 0, "baseType": "Creator", "members": [
+        { "name": "ConcreteCreator", "role": "Factory", "offsetX": 280, "offsetY": 0, "baseType": "Creator", "members": [
           { "kind": "Method", "name": "CreateProduct", "returnType": "IProduct", "access": "Public", "generateStub": true }
         ]},
-        { "name": "ConcreteProduct", "role": "Model", "offsetX": 260, "offsetY": 140, "implements": ["IProduct"], "members": [
+        { "name": "ConcreteProduct", "role": "Model", "offsetX": 280, "offsetY": 180, "implements": ["IProduct"], "members": [
           { "kind": "Method", "name": "Operation", "returnType": "void", "access": "Public", "generateStub": true }
         ]}
       ],
@@ -151,15 +152,15 @@
         { "name": "Entity", "role": "Entity", "offsetX": 0, "offsetY": 0, "members": [
           { "kind": "Property", "name": "Id", "type": "int", "access": "Public" }
         ]},
-        { "name": "IRepository", "role": "Repository", "isInterface": true, "offsetX": 260, "offsetY": 0, "members": [
+        { "name": "IRepository", "role": "Repository", "isInterface": true, "offsetX": 280, "offsetY": 0, "members": [
           { "kind": "Method", "name": "GetById", "returnType": "Entity", "access": "Public", "isAbstract": true, "parameters": [{ "name": "id", "type": "int" }] },
           { "kind": "Method", "name": "Add", "returnType": "void", "access": "Public", "isAbstract": true, "parameters": [{ "name": "entity", "type": "Entity" }] }
         ]},
-        { "name": "Repository", "role": "Repository", "offsetX": 260, "offsetY": 140, "implements": ["IRepository"], "members": [
+        { "name": "Repository", "role": "Repository", "offsetX": 280, "offsetY": 180, "implements": ["IRepository"], "members": [
           { "kind": "Method", "name": "GetById", "returnType": "Entity", "access": "Public", "generateStub": true, "parameters": [{ "name": "id", "type": "int" }] },
           { "kind": "Method", "name": "Add", "returnType": "void", "access": "Public", "generateStub": true, "parameters": [{ "name": "entity", "type": "Entity" }] }
         ]},
-        { "name": "AppDbContext", "role": "OrmContext", "offsetX": 520, "offsetY": 70, "members": [
+        { "name": "AppDbContext", "role": "OrmContext", "offsetX": 560, "offsetY": 180, "members": [
           { "kind": "Method", "name": "SaveChanges", "returnType": "int", "access": "Public", "generateStub": true }
         ]}
       ],

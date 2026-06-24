@@ -21,7 +21,9 @@ const ROLES: { value: ClassRole; label: string }[] = [
 export function InspectorPanel() {
   const project = useDiagramStore((s) => s.project);
   const selectedClassId = useDiagramStore((s) => s.selectedClassId);
+  const selectedClassIds = useDiagramStore((s) => s.selectedClassIds);
   const selectedIntegrationId = useDiagramStore((s) => s.selectedIntegrationId);
+  const selectedIntegrationIds = useDiagramStore((s) => s.selectedIntegrationIds);
   const updateClass = useDiagramStore((s) => s.updateClass);
   const updateIntegration = useDiagramStore((s) => s.updateIntegration);
   const rightTab = useDiagramStore((s) => s.rightTab);
@@ -31,6 +33,7 @@ export function InspectorPanel() {
 
   const cls = project.classes.find((c) => c.id === selectedClassId);
   const intg = project.integrations.find((i) => i.id === selectedIntegrationId);
+  const multiCount = selectedClassIds.length + selectedIntegrationIds.length;
   const lang = project.language;
 
   const nsLabel = lang === 'csharp' ? 'Namespace' : lang === 'java' ? 'Package' : 'Module';
@@ -72,6 +75,11 @@ export function InspectorPanel() {
         ) : (
           <IntegrationInspector intg={intg} onUpdate={(patch) => updateIntegration(intg.id, patch)} />
         )
+      ) : multiCount > 1 ? (
+        <p className="pattern-desc">
+          Выбрано элементов: <strong>{multiCount}</strong>. Перетащите группу целиком, удалите через Del или
+          дублируйте через Ctrl+D. Инспектор показывает последний выбранный элемент при одиночном выделении.
+        </p>
       ) : !cls ? (
         <p className="pattern-desc">
           Выберите класс на схеме для детальной настройки полей, методов, свойств, наследования и импортов.

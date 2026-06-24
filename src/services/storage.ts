@@ -1,20 +1,65 @@
+import { get as idbGet, set as idbSet, del as idbDel } from 'idb-keyval';
 import { SCHEMA_VERSION, type ProjectModel } from '../types/models';
 import { validateProject } from './validation';
 
 const STORAGE_KEY = 'archistyler-online-v1';
+const LEGACY_LS_KEY = 'archistyler-online-v1';
 
-export function saveToLocalStorage(project: ProjectModel): void {
+function serializeProject(project: ProjectModel): string {
+  return JSON.stringify({ schemaVersion: SCHEMA_VERSION, ...project, savedAt: Date.now() });
+}
+
+export async function saveProject(project: ProjectModel): Promise<void> {
   try {
-    const payload = { schemaVersion: SCHEMA_VERSION, ...project, savedAt: Date.now() };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    await idbSet(STORAGE_KEY, serializeProject(project));
   } catch {
     /* quota */
   }
 }
 
+export async function loadProject(): Promise<ProjectModel | null> {
+  try {
+    const idbRaw = await idbGet<string>(STORAGE_KEY);
+    if (idbRaw) {
+      const parsed = validateProject(JSON.parse(idbRaw));
+      if (parsed) return parsed;
+    }
+  } catch {
+    /* fall through */
+  }
+
+  try {
+    const lsRaw = localStorage.getItem(LEGACY_LS_KEY);
+    if (!lsRaw) return null;
+    const parsed = validateProject(JSON.parse(lsRaw));
+    if (parsed) {
+      await saveProject(parsed);
+      localStorage.removeItem(LEGACY_LS_KEY);
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export async function clearProjectStorage(): Promise<void> {
+  try {
+    await idbDel(STORAGE_KEY);
+  } catch {
+    /* ok */
+  }
+  localStorage.removeItem(LEGACY_LS_KEY);
+}
+
+/** @deprecated use saveProject */
+export function saveToLocalStorage(project: ProjectModel): void {
+  void saveProject(project);
+}
+
+/** @deprecated use loadProject */
 export function loadFromLocalStorage(): ProjectModel | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(LEGACY_LS_KEY);
     if (!raw) return null;
     return validateProject(JSON.parse(raw));
   } catch {
@@ -22,8 +67,9 @@ export function loadFromLocalStorage(): ProjectModel | null {
   }
 }
 
+/** @deprecated use clearProjectStorage */
 export function clearLocalStorage(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  void clearProjectStorage();
 }
 
 export function exportProjectJson(project: ProjectModel): string {
@@ -32,8 +78,7 @@ export function exportProjectJson(project: ProjectModel): string {
 
 export function importProjectJson(text: string): ProjectModel | null {
   try {
-    const data = JSON.parse(text);
-    return validateProject(data);
+    return validateProject(JSON.parse(text));
   } catch {
     return null;
   }

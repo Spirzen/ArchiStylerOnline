@@ -603,3 +603,120 @@ a.btn {
 .relations path[markerEnd] {
   color: var(--accent-primary);
 }
+
+.btn-compact:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.export-menu-wrap {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 100;
+  min-width: 220px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.export-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.export-menu-item:hover {
+  background: var(--btn-hover);
+}
+
+.export-crop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.export-crop-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.export-crop-selection {
+  position: absolute;
+  border: 2px dashed var(--accent-primary);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+}
+
+.export-crop-hint {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--glow);
+  font-size: 0.85rem;
+  z-index: 301;
+}
+
+.export-crop-esc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.canvas-wrap.selecting {
+  cursor: crosshair;
+}
+
+.selection-marquee {
+  position: absolute;
+  border: 1.5px dashed var(--accent-primary);
+  background: rgba(110, 231, 215, 0.12);
+  pointer-events: none;
+  z-index: 18;
+  box-shadow: 0 0 0 1px rgba(110, 231, 215, 0.25);
+}
+
+.selection-count-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 52px;
+  z-index: 18;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: var(--accent-primary);
+  background: var(--bg-panel);
+  border: 1px solid var(--accent-primary);
+  pointer-events: none;
+}
+
+.smart-guides-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
